@@ -1,60 +1,51 @@
 # MKTG 430 - A/B Test Voting Platform
 
-An interactive web application for students to review, vote on, and comment on A/B test submissions from their Social Media Marketing class. The platform collects engagement data and provides analytics to demonstrate what social media analysts look for in A/B testing.
+A simple, clean web application for students to review and vote on A/B test submissions from their Social Media Marketing class.
 
 ## Features
 
-- **User Authentication**: Students enter their name to personalize their voting experience
+- **Simple Workflow**: Name entry → Vote on 18 tests → Download CSV → Submit to myCourses
 - **A/B Test Voting**: Compare 18 different A/B test submissions with image and copy variations
 - **Engagement Tracking**: Rate click likelihood (1-5 scale) for both variants
-- **Commenting System**: Leave feedback and insights on each A/B test
-- **Data Persistence**: All votes and comments are saved in browser localStorage
-- **Real-time Results**: See vote counts and engagement scores after voting on each test
-- **Analytics Dashboard**: Comprehensive analytics showing:
-  - Overall performance metrics
-  - Winner distribution across all tests
-  - Performance by test type (Copy vs Image tests)
-  - Click likelihood distributions
-  - Key insights for social media analysts
+- **Commenting System**: Optional feedback on each A/B test
+- **CSV Download**: One-click download of all voting data
+- **Mobile Responsive**: Works on all devices
+- **Zero Dependencies**: Pure HTML/CSS/JavaScript - works perfectly on GitHub Pages
 
 ## How to Use
 
-### Opening the Website
+### For Students
 
-1. **Simple Method**: Open `index.html` directly in a web browser
-   - Right-click on `index.html` and select "Open with" > your preferred browser
-   - Or drag and drop `index.html` into an open browser window
+1. Go to **profalexbutler.github.io/mktg430-ABTest**
+2. Enter your name
+3. For each of the 18 A/B tests:
+   - View both variants (A and B)
+   - Rate click likelihood for each (1-5 slider)
+   - Select which variant you prefer
+   - Optionally add comments
+   - Submit vote
+4. After completing all tests, click **"Download My Data (CSV)"**
+5. Submit the CSV file to the assignment dropbox on myCourses
 
-2. **Local Server Method** (recommended for best performance):
-   ```bash
-   # Using Python 3
-   python -m http.server 8000
+### For Instructors
 
-   # Using Python 2
-   python -m SimpleHTTPServer 8000
+**Data Collection:**
+- Students download their individual CSV files
+- Each file is named: `ABTest_StudentName_2025-10-24.csv`
+- Students submit these to your LMS assignment dropbox
+- You can combine all CSV files in Excel or Google Sheets for class-wide analysis
 
-   # Using Node.js (if you have npx)
-   npx http-server
-   ```
-   Then open `http://localhost:8000` in your browser
+**CSV Data Includes:**
+- Student Name
+- Test Name (e.g., "CopyTest - Crocs")
+- Test Type (Copy, Image, or Copy/Audience)
+- Variant Selected (A or B)
+- Variant A Click Likelihood (1-5)
+- Variant B Click Likelihood (1-5)
+- Comments (if provided)
+- Timestamp
 
-### Using the Platform
-
-1. **Enter Your Name**: Start by entering your name on the welcome screen
-2. **Vote on Tests**:
-   - View the A/B test variants side-by-side
-   - Rate click likelihood for each variant (1-5)
-   - Choose which variant you prefer
-   - Optionally add comments with your thoughts
-   - Submit your vote
-3. **View Results**: After voting, see the results for that specific test
-4. **Navigate Tests**: Use Previous/Next buttons to move through all 18 tests
-5. **View Summary**: After completing all tests, see a summary of all results
-6. **Analytics Dashboard**: Click "View Analytics Dashboard" to see comprehensive insights
-
-## Data Structure
-
-### A/B Tests Included
+## A/B Tests Included
 
 The platform includes 18 A/B tests from various brands:
 - Memorial Art Gallery
@@ -68,74 +59,28 @@ The platform includes 18 A/B tests from various brands:
 - Jimmy Johns
 - Arby's
 
-### Test Types
+## Test Types
 
 - **Copy Tests**: Same image, different text
 - **Image Tests**: Same text, different images
 - **Copy/Audience Tests**: Different copy targeting different audiences
 
-## Data Persistence
-
-All data is stored locally in your browser using localStorage:
-- **Votes**: Preference, likelihood scores, and voter information
-- **Comments**: User feedback on each test
-- **User Name**: Your name for attribution
-
-To reset all data, use the "Start New Session" button in the Summary view.
-
-## Analytics Insights
-
-The analytics dashboard provides insights that social media analysts typically look for:
-
-1. **Variant Performance**: Which variant (A or B) performs better overall
-2. **Engagement Quality**: Average click likelihood scores
-3. **Test Type Effectiveness**: Performance breakdown by test type
-4. **Community Engagement**: Comment participation rates
-
 ## Technical Details
 
-- **Frontend**: React 18 with JSX
-- **Charts**: Recharts for data visualization
-- **Styling**: Tailwind CSS
-- **Data Storage**: Browser localStorage
-- **Dependencies**: Loaded via CDN (no installation required)
-
-## Data Collection Options
-
-### Option 1: Student CSV Download (Recommended for Non-Technical Classes)
-
-The easiest method for collecting student data:
-
-1. **Students complete the voting**: Have students go through all 18 A/B tests
-2. **Click "Download My Data (CSV)"**: After completing tests, students click the green download button on the Summary page or Analytics Dashboard
-3. **Email you the file**: Students email you the automatically generated CSV file (named like `ABTest_JohnDoe_2025-10-24.csv`)
-4. **Combine the data**: You can merge all CSV files in Excel or Google Sheets for class-wide analysis
-
-The CSV includes:
-- Student name
-- Test name and type
-- Variant selected (A or B)
-- Click likelihood ratings for both variants
-- Comments (if provided)
-- Timestamps
-
-### Option 2: Browser Console Export (For Advanced Users)
-
-If needed, students can also export raw data:
-1. Open browser console (F12)
-2. Run: `console.log(JSON.stringify(localStorage))`
-3. Copy the output and save to a file
-
-This provides all voting and comment data in JSON format.
+- **Frontend**: Vanilla JavaScript (no frameworks)
+- **Styling**: Pure CSS
+- **Dependencies**: None
+- **Works on**: Any modern browser, GitHub Pages, any static hosting
 
 ## Browser Compatibility
 
-Works best in modern browsers:
+Works in all modern browsers:
 - Chrome 90+
 - Firefox 88+
 - Safari 14+
 - Edge 90+
+- Mobile browsers
 
 ## Privacy
 
-All data is stored locally in the user's browser. No data is sent to external servers. Images are hosted on Google Drive and loaded directly from there.
+All data stays in the student's browser until they download the CSV. No data is sent to external servers. Images are hosted on Google Drive.
