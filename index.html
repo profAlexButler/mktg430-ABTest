@@ -88,10 +88,17 @@
 
     .variant img {
       width: 100%;
-      height: 250px;
-      object-fit: cover;
+      height: auto;
+      max-height: 500px;
+      object-fit: contain;
       border-radius: 8px;
       margin-bottom: 15px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .variant img:hover {
+      transform: scale(1.02);
     }
 
     .variant p {
@@ -274,9 +281,60 @@
     .download-btn:hover {
       background: #16a34a;
     }
+
+    /* Lightbox Modal */
+    .lightbox {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox.active {
+      display: flex;
+    }
+
+    .lightbox img {
+      max-width: 90%;
+      max-height: 90vh;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 20px;
+      right: 40px;
+      font-size: 40px;
+      color: white;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      width: 40px;
+      height: 40px;
+      line-height: 40px;
+      transition: transform 0.2s;
+    }
+
+    .lightbox-close:hover {
+      transform: scale(1.2);
+    }
   </style>
 </head>
 <body>
+  <!-- Lightbox Modal -->
+  <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+    <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+    <img id="lightboxImg" src="" alt="Enlarged view">
+  </div>
+
   <div class="container">
     <!-- Name Entry Screen -->
     <div id="nameScreen" class="card">
@@ -587,7 +645,7 @@
       grid.innerHTML = `
         <div class="variant variant-a" id="variantA">
           <h3>Variant A</h3>
-          <img src="${test.postA.image}" alt="Variant A">
+          <img src="${test.postA.image}" alt="Variant A" onclick="openLightbox('${test.postA.image}')">
           <p>${test.postA.copy}</p>
           <div class="slider-container">
             <label class="slider-label">How likely to click? (1-5)</label>
@@ -602,7 +660,7 @@
 
         <div class="variant variant-b" id="variantB">
           <h3>Variant B</h3>
-          <img src="${test.postB.image}" alt="Variant B">
+          <img src="${test.postB.image}" alt="Variant B" onclick="openLightbox('${test.postB.image}')">
           <p>${test.postB.copy}</p>
           <div class="slider-container">
             <label class="slider-label">How likely to click? (1-5)</label>
@@ -710,6 +768,19 @@
       link.download = `ABTest_${studentName}_${new Date().toISOString().split('T')[0]}.csv`;
       link.click();
       URL.revokeObjectURL(url);
+    }
+
+    // Lightbox functions
+    function openLightbox(imageSrc) {
+      const lightbox = document.getElementById('lightbox');
+      const lightboxImg = document.getElementById('lightboxImg');
+      lightboxImg.src = imageSrc;
+      lightbox.classList.add('active');
+    }
+
+    function closeLightbox() {
+      const lightbox = document.getElementById('lightbox');
+      lightbox.classList.remove('active');
     }
   </script>
 </body>
