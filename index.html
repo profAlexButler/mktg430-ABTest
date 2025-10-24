@@ -15,9 +15,6 @@
   <!-- Babel Standalone for JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  <!-- Recharts -->
-  <script src="https://unpkg.com/recharts@2.5.0/dist/Recharts.js"></script>
-
   <style>
     body {
       margin: 0;
@@ -35,7 +32,6 @@
 
   <script type="text/babel">
     const { useState, useEffect } = React;
-    const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
 
     const ABTestData = [
       {
@@ -680,17 +676,50 @@
 
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h3 className="text-xl font-bold text-gray-800 mb-4">Visual Comparison</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="Preference" fill="#f76902" />
-                <Bar dataKey="Avg Likelihood" fill="#4b5563" />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="space-y-6">
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-2">Vote Preference</p>
+                <div className="flex gap-4 items-end h-40">
+                  <div className="flex-1 flex flex-col justify-end items-center">
+                    <div
+                      className="w-full bg-orange-600 rounded-t transition-all"
+                      style={{ height: totalVotes > 0 ? `${(preferenceA / Math.max(preferenceA, preferenceB, 1)) * 100}%` : '0%' }}
+                    ></div>
+                    <p className="mt-2 text-sm font-bold text-gray-800">Variant A</p>
+                    <p className="text-xs text-gray-600">{preferenceA} votes</p>
+                  </div>
+                  <div className="flex-1 flex flex-col justify-end items-center">
+                    <div
+                      className="w-full bg-gray-700 rounded-t transition-all"
+                      style={{ height: totalVotes > 0 ? `${(preferenceB / Math.max(preferenceA, preferenceB, 1)) * 100}%` : '0%' }}
+                    ></div>
+                    <p className="mt-2 text-sm font-bold text-gray-800">Variant B</p>
+                    <p className="text-xs text-gray-600">{preferenceB} votes</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-2">Average Click Likelihood</p>
+                <div className="flex gap-4 items-end h-40">
+                  <div className="flex-1 flex flex-col justify-end items-center">
+                    <div
+                      className="w-full bg-orange-400 rounded-t transition-all"
+                      style={{ height: `${(parseFloat(avgLikelihoodA) / 5) * 100}%` }}
+                    ></div>
+                    <p className="mt-2 text-sm font-bold text-gray-800">Variant A</p>
+                    <p className="text-xs text-gray-600">{avgLikelihoodA}/5</p>
+                  </div>
+                  <div className="flex-1 flex flex-col justify-end items-center">
+                    <div
+                      className="w-full bg-gray-500 rounded-t transition-all"
+                      style={{ height: `${(parseFloat(avgLikelihoodB) / 5) * 100}%` }}
+                    ></div>
+                    <p className="mt-2 text-sm font-bold text-gray-800">Variant B</p>
+                    <p className="text-xs text-gray-600">{avgLikelihoodB}/5</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {comments && comments.length > 0 && (
@@ -958,18 +987,52 @@
 
               <div className="mb-8">
                 <h2 className="text-2xl font-bold text-gray-800 mb-4">Performance by Test Type</h2>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={testTypeChartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="testType" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="A Wins" fill="#f76902" />
-                    <Bar dataKey="B Wins" fill="#4b5563" />
-                    <Bar dataKey="Ties" fill="#eab308" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="space-y-4">
+                  {Object.entries(testTypeStats).map(([type, stats]) => {
+                    const total = stats.aWins + stats.bWins + stats.ties;
+                    const maxValue = Math.max(stats.aWins, stats.bWins, stats.ties, 1);
+                    return (
+                      <div key={type} className="bg-white rounded-lg p-4 border border-gray-200">
+                        <h3 className="font-bold text-gray-800 mb-3">{type}</h3>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <span className="w-20 text-sm text-gray-600">A Wins:</span>
+                            <div className="flex-1 bg-gray-100 rounded-full h-6 relative">
+                              <div
+                                className="bg-orange-600 h-6 rounded-full flex items-center justify-end pr-2"
+                                style={{ width: `${(stats.aWins / maxValue) * 100}%` }}
+                              >
+                                {stats.aWins > 0 && <span className="text-xs text-white font-bold">{stats.aWins}</span>}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-20 text-sm text-gray-600">B Wins:</span>
+                            <div className="flex-1 bg-gray-100 rounded-full h-6 relative">
+                              <div
+                                className="bg-gray-700 h-6 rounded-full flex items-center justify-end pr-2"
+                                style={{ width: `${(stats.bWins / maxValue) * 100}%` }}
+                              >
+                                {stats.bWins > 0 && <span className="text-xs text-white font-bold">{stats.bWins}</span>}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-20 text-sm text-gray-600">Ties:</span>
+                            <div className="flex-1 bg-gray-100 rounded-full h-6 relative">
+                              <div
+                                className="bg-yellow-500 h-6 rounded-full flex items-center justify-end pr-2"
+                                style={{ width: `${(stats.ties / maxValue) * 100}%` }}
+                              >
+                                {stats.ties > 0 && <span className="text-xs text-white font-bold">{stats.ties}</span>}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="mb-8">
@@ -986,17 +1049,47 @@
                     <p className="text-sm text-gray-600">{avgEngagementB.length} total ratings</p>
                   </div>
                 </div>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={engagementDistribution}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="score" label={{ value: 'Likelihood Score', position: 'insideBottom', offset: -5 }} />
-                    <YAxis label={{ value: 'Count', angle: -90, position: 'insideLeft' }} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="countA" name="Variant A" fill="#f76902" />
-                    <Bar dataKey="countB" name="Variant B" fill="#4b5563" />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <div className="flex gap-4 items-end h-64">
+                    {engagementDistribution.map((item) => {
+                      const maxCount = Math.max(
+                        ...engagementDistribution.map(d => Math.max(d.countA, d.countB)),
+                        1
+                      );
+                      return (
+                        <div key={item.score} className="flex-1 flex flex-col items-center justify-end">
+                          <div className="w-full flex gap-1 items-end justify-center h-full">
+                            <div className="flex-1 flex flex-col items-center justify-end">
+                              <div
+                                className="w-full bg-orange-600 rounded-t"
+                                style={{ height: `${(item.countA / maxCount) * 100}%` }}
+                              ></div>
+                              <span className="text-xs text-gray-600 mt-1">{item.countA}</span>
+                            </div>
+                            <div className="flex-1 flex flex-col items-center justify-end">
+                              <div
+                                className="w-full bg-gray-700 rounded-t"
+                                style={{ height: `${(item.countB / maxCount) * 100}%` }}
+                              ></div>
+                              <span className="text-xs text-gray-600 mt-1">{item.countB}</span>
+                            </div>
+                          </div>
+                          <p className="text-xs font-bold text-gray-800 mt-2">Score {item.score}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex justify-center gap-6 mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-orange-600 rounded"></div>
+                      <span className="text-sm text-gray-700">Variant A</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-gray-700 rounded"></div>
+                      <span className="text-sm text-gray-700">Variant B</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">
