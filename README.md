@@ -2,24 +2,6 @@
 
 A simple, clean web application for students to review and vote on A/B test submissions from their Social Media Marketing class.
 
-## Setup Instructions
-
-### Adding Images
-
-The images need to be added to the `images/` folder before the site will work properly:
-
-1. Download all 36 images from your Google Drive folder (18 tests × 2 variants each)
-2. Rename them according to the mapping in `images/README.md`
-3. Place them in the `images/` folder
-4. Commit and push to GitHub:
-   ```bash
-   git add images/
-   git commit -m "Add A/B test images"
-   git push
-   ```
-
-**See `images/README.md` for the complete file naming guide and download links.**
-
 ## Features
 
 - **Simple Workflow**: Name entry → Vote on 18 tests → Download CSV → Submit to myCourses
