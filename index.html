@@ -3,37 +3,339 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MKTG 430 - A/B Test Voting Platform</title>
-
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- React and ReactDOM -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
-  <!-- Babel Standalone for JSX -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
+  <title>MKTG 430 - A/B Test Voting</title>
   <style>
-    body {
+    * {
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-        sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #fff5f0 0%, #ffe8df 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      color: #f76902;
+      margin-bottom: 10px;
+    }
+
+    .progress-bar {
+      background: #e0e0e0;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 20px 0;
+    }
+
+    .progress-fill {
+      background: #f76902;
+      height: 100%;
+      transition: width 0.3s;
+    }
+
+    .test-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .variant {
+      border: 3px solid transparent;
+      border-radius: 8px;
+      padding: 20px;
+      background: #f9f9f9;
+      transition: all 0.3s;
+    }
+
+    .variant.selected {
+      border-color: #f76902;
+      background: #fff5f0;
+    }
+
+    .variant h3 {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+
+    .variant-a h3 {
+      background: #f76902;
+      color: white;
+    }
+
+    .variant-b h3 {
+      background: #555;
+      color: white;
+    }
+
+    .variant img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .variant p {
+      font-size: 16px;
+      line-height: 1.5;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .slider-container {
+      margin-top: 15px;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+    }
+
+    .slider-label {
+      font-weight: bold;
+      margin-bottom: 10px;
+      display: block;
+      font-size: 14px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      margin: 10px 0;
+    }
+
+    .slider-value {
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #f76902;
+      margin: 10px 0;
+    }
+
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .vote-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    button {
+      padding: 15px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-variant {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    .btn-variant:hover {
+      background: #d0d0d0;
+    }
+
+    .btn-variant.selected {
+      transform: scale(1.05);
+    }
+
+    .btn-variant-a.selected {
+      background: #f76902;
+      color: white;
+    }
+
+    .btn-variant-b.selected {
+      background: #555;
+      color: white;
+    }
+
+    .btn-primary {
+      background: #22c55e;
+      color: white;
+      grid-column: 1 / -1;
+    }
+
+    .btn-primary:hover {
+      background: #16a34a;
+    }
+
+    .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #2563eb;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      resize: vertical;
+      margin-top: 10px;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #f76902;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .nav-buttons button {
+      flex: 1;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      margin: 15px 0;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #f76902;
+    }
+
+    @media (max-width: 768px) {
+      .test-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .vote-buttons {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .summary-item {
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .download-btn {
+      background: #22c55e;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 20px;
+      font-size: 18px;
+    }
+
+    .download-btn:hover {
+      background: #16a34a;
     }
   </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div class="container">
+    <!-- Name Entry Screen -->
+    <div id="nameScreen" class="card">
+      <h1>Welcome to A/B Test Voting</h1>
+      <p>Please enter your name to get started. Your responses will help analyze social media engagement patterns.</p>
+      <input type="text" id="studentName" placeholder="Enter your name" />
+      <button class="btn-primary" onclick="startVoting()">Start Voting</button>
+    </div>
 
-  <script type="text/babel">
-    const { useState, useEffect } = React;
+    <!-- Voting Screen -->
+    <div id="votingScreen" class="hidden">
+      <div class="card">
+        <h1>A/B Test Voting</h1>
+        <p id="testInfo">Test 1 of 18</p>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressBar"></div>
+        </div>
+      </div>
 
-    const ABTestData = [
+      <div class="test-grid" id="testGrid">
+        <!-- Variants will be inserted here -->
+      </div>
+
+      <div class="card">
+        <h3>Which variant would you engage with?</h3>
+        <div class="vote-buttons">
+          <button class="btn-variant btn-variant-a" onclick="selectVariant('A')">Vote for Variant A</button>
+          <button class="btn-variant btn-variant-b" onclick="selectVariant('B')">Vote for Variant B</button>
+        </div>
+
+        <div id="commentSection" class="hidden">
+          <label class="slider-label">Add a comment (optional)</label>
+          <textarea id="commentText" rows="3" placeholder="Share your thoughts on this A/B test..."></textarea>
+          <button class="btn-primary" onclick="submitVote()">Submit Vote</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Screen -->
+    <div id="summaryScreen" class="hidden">
+      <div class="card">
+        <h1>You're Done!</h1>
+        <p>Thank you for completing all 18 A/B tests. Click the button below to download your data.</p>
+
+        <button class="download-btn" onclick="downloadCSV()">
+          <span>📥</span>
+          <span>Download My Data (CSV)</span>
+        </button>
+
+        <p style="margin-top: 20px; color: #666;">
+          After downloading, submit the CSV file to the assignment dropbox on myCourses.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // A/B Test Data
+    const abTests = [
       {
         team: "ImageTest - Memorial Art Gallery",
         testType: "Image",
@@ -252,897 +554,163 @@
       }
     ];
 
-    // Data export function
-    function downloadDataAsCSV(userName, votes, comments) {
-      const rows = [];
+    // State
+    let studentName = '';
+    let currentTest = 0;
+    let selectedVariant = null;
+    let responses = [];
 
-      // Header row
-      rows.push(['Student Name', 'Test Name', 'Test Type', 'Variant Selected', 'Variant A Click Likelihood', 'Variant B Click Likelihood', 'Comment', 'Timestamp']);
+    function startVoting() {
+      const nameInput = document.getElementById('studentName');
+      studentName = nameInput.value.trim();
 
-      // Data rows
-      ABTestData.forEach((test, idx) => {
-        const voteData = votes[idx];
-        if (voteData && voteData.voters && voteData.voters.length > 0) {
-          voteData.voters.forEach((voter) => {
-            const testComments = comments[idx] || [];
-            const voterComment = testComments.find(c => c.name === voter.name && c.timestamp === voter.timestamp);
+      if (!studentName) {
+        alert('Please enter your name');
+        return;
+      }
 
-            rows.push([
-              voter.name,
-              test.team,
-              test.testType,
-              `Variant ${voter.preference}`,
-              voter.likelihoodA,
-              voter.likelihoodB,
-              voterComment ? `"${voterComment.text.replace(/"/g, '""')}"` : '',
-              new Date(voter.timestamp).toLocaleString()
-            ]);
-          });
-        }
+      document.getElementById('nameScreen').classList.add('hidden');
+      document.getElementById('votingScreen').classList.remove('hidden');
+
+      loadTest();
+    }
+
+    function loadTest() {
+      const test = abTests[currentTest];
+
+      // Update progress
+      document.getElementById('testInfo').textContent = `Test ${currentTest + 1} of ${abTests.length} - ${test.team} (${test.testType})`;
+      document.getElementById('progressBar').style.width = `${((currentTest + 1) / abTests.length) * 100}%`;
+
+      // Build test grid
+      const grid = document.getElementById('testGrid');
+      grid.innerHTML = `
+        <div class="variant variant-a" id="variantA">
+          <h3>Variant A</h3>
+          <img src="${test.postA.image}" alt="Variant A">
+          <p>${test.postA.copy}</p>
+          <div class="slider-container">
+            <label class="slider-label">How likely to click? (1-5)</label>
+            <div class="slider-value" id="sliderValueA">3</div>
+            <input type="range" id="sliderA" min="1" max="5" value="3" oninput="updateSlider('A', this.value)">
+            <div class="slider-labels">
+              <span>Not likely</span>
+              <span>Very likely</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="variant variant-b" id="variantB">
+          <h3>Variant B</h3>
+          <img src="${test.postB.image}" alt="Variant B">
+          <p>${test.postB.copy}</p>
+          <div class="slider-container">
+            <label class="slider-label">How likely to click? (1-5)</label>
+            <div class="slider-value" id="sliderValueB">3</div>
+            <input type="range" id="sliderB" min="1" max="5" value="3" oninput="updateSlider('B', this.value)">
+            <div class="slider-labels">
+              <span>Not likely</span>
+              <span>Very likely</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Reset selection
+      selectedVariant = null;
+      document.getElementById('commentSection').classList.add('hidden');
+      document.getElementById('commentText').value = '';
+
+      // Reset button states
+      document.querySelectorAll('.btn-variant').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+    }
+
+    function updateSlider(variant, value) {
+      document.getElementById('sliderValue' + variant).textContent = value;
+    }
+
+    function selectVariant(variant) {
+      selectedVariant = variant;
+
+      // Update button states
+      document.querySelectorAll('.btn-variant').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+      event.target.classList.add('selected');
+
+      // Update variant cards
+      document.getElementById('variantA').classList.toggle('selected', variant === 'A');
+      document.getElementById('variantB').classList.toggle('selected', variant === 'B');
+
+      // Show comment section
+      document.getElementById('commentSection').classList.remove('hidden');
+    }
+
+    function submitVote() {
+      if (!selectedVariant) {
+        alert('Please select a variant');
+        return;
+      }
+
+      const test = abTests[currentTest];
+      const response = {
+        studentName: studentName,
+        testName: test.team,
+        testType: test.testType,
+        variantSelected: `Variant ${selectedVariant}`,
+        variantAClickLikelihood: document.getElementById('sliderA').value,
+        variantBClickLikelihood: document.getElementById('sliderB').value,
+        comment: document.getElementById('commentText').value,
+        timestamp: new Date().toISOString()
+      };
+
+      responses.push(response);
+
+      // Move to next test or summary
+      if (currentTest < abTests.length - 1) {
+        currentTest++;
+        loadTest();
+        window.scrollTo(0, 0);
+      } else {
+        showSummary();
+      }
+    }
+
+    function showSummary() {
+      document.getElementById('votingScreen').classList.add('hidden');
+      document.getElementById('summaryScreen').classList.remove('hidden');
+    }
+
+    function downloadCSV() {
+      // Create CSV content
+      const headers = ['Student Name', 'Test Name', 'Test Type', 'Variant Selected', 'Variant A Click Likelihood', 'Variant B Click Likelihood', 'Comment', 'Timestamp'];
+      const csvRows = [headers.join(',')];
+
+      responses.forEach(r => {
+        const row = [
+          r.studentName,
+          `"${r.testName}"`,
+          r.testType,
+          r.variantSelected,
+          r.variantAClickLikelihood,
+          r.variantBClickLikelihood,
+          `"${r.comment.replace(/"/g, '""')}"`,
+          r.timestamp
+        ];
+        csvRows.push(row.join(','));
       });
 
-      // Convert to CSV string
-      const csvContent = rows.map(row => row.join(',')).join('\\n');
-
-      // Create download
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
-
-      link.setAttribute('href', url);
-      link.setAttribute('download', `ABTest_${userName}_${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
-
-      document.body.appendChild(link);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `ABTest_${studentName}_${new Date().toISOString().split('T')[0]}.csv`;
       link.click();
-      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
-
-    function ABTestingVoter() {
-      const [currentTest, setCurrentTest] = useState(0);
-      const [viewMode, setViewMode] = useState('voting');
-      const [votes, setVotes] = useState(() => {
-        const saved = localStorage.getItem('abTestVotes');
-        return saved ? JSON.parse(saved) : {};
-      });
-      const [comments, setComments] = useState(() => {
-        const saved = localStorage.getItem('abTestComments');
-        return saved ? JSON.parse(saved) : {};
-      });
-      const [hasVoted, setHasVoted] = useState(false);
-      const [userName, setUserName] = useState(() => {
-        const saved = localStorage.getItem('abTestUserName');
-        return saved || '';
-      });
-
-      const test = ABTestData[currentTest];
-
-      useEffect(() => {
-        localStorage.setItem('abTestVotes', JSON.stringify(votes));
-      }, [votes]);
-
-      useEffect(() => {
-        localStorage.setItem('abTestComments', JSON.stringify(comments));
-      }, [comments]);
-
-      useEffect(() => {
-        if (userName) {
-          localStorage.setItem('abTestUserName', userName);
-        }
-      }, [userName]);
-
-      const handleVote = (preference, likelihoodA, likelihoodB, comment) => {
-        const newVotes = { ...votes };
-        if (!newVotes[currentTest]) {
-          newVotes[currentTest] = { preference: {}, likelihoodA: [], likelihoodB: [], voters: [] };
-        }
-
-        newVotes[currentTest].preference[preference] = (newVotes[currentTest].preference[preference] || 0) + 1;
-        newVotes[currentTest].likelihoodA.push(likelihoodA);
-        newVotes[currentTest].likelihoodB.push(likelihoodB);
-        newVotes[currentTest].voters.push({
-          name: userName,
-          preference,
-          likelihoodA,
-          likelihoodB,
-          timestamp: new Date().toISOString()
-        });
-
-        setVotes(newVotes);
-
-        if (comment && comment.trim()) {
-          const newComments = { ...comments };
-          if (!newComments[currentTest]) {
-            newComments[currentTest] = [];
-          }
-          newComments[currentTest].push({
-            name: userName,
-            text: comment,
-            timestamp: new Date().toISOString()
-          });
-          setComments(newComments);
-        }
-
-        setHasVoted(true);
-      };
-
-      const nextTest = () => {
-        if (currentTest < ABTestData.length - 1) {
-          setCurrentTest(currentTest + 1);
-          setHasVoted(false);
-          setViewMode('voting');
-        } else {
-          setViewMode('summary');
-        }
-      };
-
-      const previousTest = () => {
-        if (currentTest > 0) {
-          setCurrentTest(currentTest - 1);
-          setHasVoted(false);
-          setViewMode('voting');
-        }
-      };
-
-      const resetAll = () => {
-        setCurrentTest(0);
-        setVotes({});
-        setHasVoted(false);
-        setViewMode('voting');
-      };
-
-      if (!userName) {
-        return <UserNamePrompt onSetName={setUserName} />;
-      }
-
-      if (viewMode === 'summary') {
-        return <SummaryView votes={votes} comments={comments} userName={userName} data={ABTestData} onReset={resetAll} onViewAnalytics={() => setViewMode('analytics')} />;
-      }
-
-      if (viewMode === 'analytics') {
-        return <AnalyticsView votes={votes} comments={comments} userName={userName} data={ABTestData} onBack={() => setViewMode('summary')} />;
-      }
-
-      const currentVoteData = votes[currentTest];
-      const totalVotes = currentVoteData ?
-        (currentVoteData.preference.A || 0) + (currentVoteData.preference.B || 0) : 0;
-
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 p-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h1 className="text-3xl font-bold text-orange-600">A/B Test Voting</h1>
-                  <p className="text-gray-600 mt-1">Test {currentTest + 1} of {ABTestData.length}</p>
-                  <p className="text-sm text-gray-500 mt-1">Logged in as: <span className="font-semibold">{userName}</span></p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">{test.testType} Test</p>
-                  <p className="text-lg font-semibold text-gray-800">{test.team}</p>
-                </div>
-              </div>
-
-              <div className="mt-4 bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-orange-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${((currentTest + 1) / ABTestData.length) * 100}%` }}
-                />
-              </div>
-            </div>
-
-            {viewMode === 'voting' && !hasVoted && (
-              <VotingView test={test} onVote={handleVote} />
-            )}
-
-            {hasVoted && (
-              <ResultsView
-                test={test}
-                voteData={currentVoteData}
-                comments={comments[currentTest] || []}
-                totalVotes={totalVotes}
-                onNext={nextTest}
-                onPrevious={previousTest}
-                isFirst={currentTest === 0}
-                isLast={currentTest === ABTestData.length - 1}
-              />
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    function UserNamePrompt({ onSetName }) {
-      const [name, setName] = useState('');
-
-      const handleSubmit = (e) => {
-        e.preventDefault();
-        if (name.trim()) {
-          onSetName(name.trim());
-        }
-      };
-
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center p-6">
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
-            <h1 className="text-3xl font-bold text-orange-600 mb-4">Welcome to A/B Test Voting</h1>
-            <p className="text-gray-600 mb-6">Please enter your name to get started. Your responses will help analyze social media engagement patterns.</p>
-            <form onSubmit={handleSubmit}>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your name"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-600 focus:outline-none mb-4"
-                required
-              />
-              <button
-                type="submit"
-                className="w-full py-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-all"
-              >
-                Start Voting
-              </button>
-            </form>
-          </div>
-        </div>
-      );
-    }
-
-    function VotingView({ test, onVote }) {
-      const [selectedPreference, setSelectedPreference] = useState(null);
-      const [likelihoodA, setLikelihoodA] = useState(3);
-      const [likelihoodB, setLikelihoodB] = useState(3);
-      const [comment, setComment] = useState('');
-
-      const handleSubmit = () => {
-        if (selectedPreference) {
-          onVote(selectedPreference, likelihoodA, likelihoodB, comment);
-        }
-      };
-
-      return (
-        <div className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className={`bg-white rounded-lg shadow-lg overflow-hidden border-4 transition-all ${
-              selectedPreference === 'A' ? 'border-orange-600' : 'border-transparent'
-            }`}>
-              <div className="bg-orange-600 text-white p-4">
-                <h3 className="text-xl font-bold">Variant A</h3>
-              </div>
-              <div className="p-4">
-                <img
-                  src={test.postA.image}
-                  alt="Variant A"
-                  className="w-full h-64 object-cover rounded-lg mb-4"
-                />
-                <p className="text-gray-800 text-lg leading-relaxed">{test.postA.copy}</p>
-              </div>
-              <div className="p-4 bg-gray-50">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  How likely to click? (1-5)
-                </label>
-                <input
-                  type="range"
-                  min="1"
-                  max="5"
-                  value={likelihoodA}
-                  onChange={(e) => setLikelihoodA(parseInt(e.target.value))}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-gray-600 mt-1">
-                  <span>Not likely</span>
-                  <span className="font-bold text-orange-600 text-lg">{likelihoodA}</span>
-                  <span>Very likely</span>
-                </div>
-              </div>
-            </div>
-
-            <div className={`bg-white rounded-lg shadow-lg overflow-hidden border-4 transition-all ${
-              selectedPreference === 'B' ? 'border-orange-600' : 'border-transparent'
-            }`}>
-              <div className="bg-gray-700 text-white p-4">
-                <h3 className="text-xl font-bold">Variant B</h3>
-              </div>
-              <div className="p-4">
-                <img
-                  src={test.postB.image}
-                  alt="Variant B"
-                  className="w-full h-64 object-cover rounded-lg mb-4"
-                />
-                <p className="text-gray-800 text-lg leading-relaxed">{test.postB.copy}</p>
-              </div>
-              <div className="p-4 bg-gray-50">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  How likely to click? (1-5)
-                </label>
-                <input
-                  type="range"
-                  min="1"
-                  max="5"
-                  value={likelihoodB}
-                  onChange={(e) => setLikelihoodB(parseInt(e.target.value))}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-gray-600 mt-1">
-                  <span>Not likely</span>
-                  <span className="font-bold text-gray-700 text-lg">{likelihoodB}</span>
-                  <span>Very likely</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Which variant would you engage with?</h3>
-            <div className="flex gap-4">
-              <button
-                onClick={() => setSelectedPreference('A')}
-                className={`flex-1 py-4 px-6 rounded-lg font-bold text-xl transition-all ${
-                  selectedPreference === 'A'
-                    ? 'bg-orange-600 text-white shadow-lg scale-105'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Vote for Variant A
-              </button>
-              <button
-                onClick={() => setSelectedPreference('B')}
-                className={`flex-1 py-4 px-6 rounded-lg font-bold text-xl transition-all ${
-                  selectedPreference === 'B'
-                    ? 'bg-gray-700 text-white shadow-lg scale-105'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Vote for Variant B
-              </button>
-            </div>
-
-            {selectedPreference && (
-              <>
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Add a comment (optional)
-                  </label>
-                  <textarea
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    placeholder="Share your thoughts on this A/B test..."
-                    className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-600 focus:outline-none resize-none"
-                    rows="3"
-                  />
-                </div>
-                <button
-                  onClick={handleSubmit}
-                  className="w-full mt-4 py-3 bg-green-600 text-white rounded-lg font-bold text-lg hover:bg-green-700 transition-all"
-                >
-                  Submit Vote
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    function ResultsView({ test, voteData, comments, totalVotes, onNext, onPrevious, isFirst, isLast }) {
-      const preferenceA = voteData?.preference.A || 0;
-      const preferenceB = voteData?.preference.B || 0;
-      const percentA = totalVotes > 0 ? ((preferenceA / totalVotes) * 100).toFixed(1) : 0;
-      const percentB = totalVotes > 0 ? ((preferenceB / totalVotes) * 100).toFixed(1) : 0;
-
-      const avgLikelihoodA = voteData?.likelihoodA.length > 0
-        ? (voteData.likelihoodA.reduce((a, b) => a + b, 0) / voteData.likelihoodA.length).toFixed(2)
-        : 0;
-      const avgLikelihoodB = voteData?.likelihoodB.length > 0
-        ? (voteData.likelihoodB.reduce((a, b) => a + b, 0) / voteData.likelihoodB.length).toFixed(2)
-        : 0;
-
-      const chartData = [
-        { name: 'Variant A', Preference: preferenceA, 'Avg Likelihood': parseFloat(avgLikelihoodA) },
-        { name: 'Variant B', Preference: preferenceB, 'Avg Likelihood': parseFloat(avgLikelihoodB) },
-      ];
-
-      return (
-        <div className="space-y-6">
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Results</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-orange-50 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-orange-600 mb-2">Variant A</h3>
-                <p className="text-4xl font-bold text-gray-800">{preferenceA} votes ({percentA}%)</p>
-                <p className="text-sm text-gray-600 mt-2">Avg Click Likelihood: {avgLikelihoodA}/5</p>
-              </div>
-              <div className="bg-gray-100 rounded-lg p-4">
-                <h3 className="text-lg font-bold text-gray-700 mb-2">Variant B</h3>
-                <p className="text-4xl font-bold text-gray-800">{preferenceB} votes ({percentB}%)</p>
-                <p className="text-sm text-gray-600 mt-2">Avg Click Likelihood: {avgLikelihoodB}/5</p>
-              </div>
-            </div>
-
-            {totalVotes > 0 && (
-              <div className={`mt-4 p-4 rounded-lg text-center ${
-                preferenceA > preferenceB ? 'bg-orange-600' :
-                preferenceB > preferenceA ? 'bg-gray-700' :
-                'bg-yellow-500'
-              } text-white`}>
-                <p className="text-2xl font-bold">
-                  {preferenceA > preferenceB ? '🎉 Variant A Wins!' :
-                   preferenceB > preferenceA ? '🎉 Variant B Wins!' :
-                   '🤝 It\'s a Tie!'}
-                </p>
-              </div>
-            )}
-          </div>
-
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Visual Comparison</h3>
-            <div className="space-y-6">
-              <div>
-                <p className="text-sm font-semibold text-gray-700 mb-2">Vote Preference</p>
-                <div className="flex gap-4 items-end h-40">
-                  <div className="flex-1 flex flex-col justify-end items-center">
-                    <div
-                      className="w-full bg-orange-600 rounded-t transition-all"
-                      style={{ height: totalVotes > 0 ? `${(preferenceA / Math.max(preferenceA, preferenceB, 1)) * 100}%` : '0%' }}
-                    ></div>
-                    <p className="mt-2 text-sm font-bold text-gray-800">Variant A</p>
-                    <p className="text-xs text-gray-600">{preferenceA} votes</p>
-                  </div>
-                  <div className="flex-1 flex flex-col justify-end items-center">
-                    <div
-                      className="w-full bg-gray-700 rounded-t transition-all"
-                      style={{ height: totalVotes > 0 ? `${(preferenceB / Math.max(preferenceA, preferenceB, 1)) * 100}%` : '0%' }}
-                    ></div>
-                    <p className="mt-2 text-sm font-bold text-gray-800">Variant B</p>
-                    <p className="text-xs text-gray-600">{preferenceB} votes</p>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-700 mb-2">Average Click Likelihood</p>
-                <div className="flex gap-4 items-end h-40">
-                  <div className="flex-1 flex flex-col justify-end items-center">
-                    <div
-                      className="w-full bg-orange-400 rounded-t transition-all"
-                      style={{ height: `${(parseFloat(avgLikelihoodA) / 5) * 100}%` }}
-                    ></div>
-                    <p className="mt-2 text-sm font-bold text-gray-800">Variant A</p>
-                    <p className="text-xs text-gray-600">{avgLikelihoodA}/5</p>
-                  </div>
-                  <div className="flex-1 flex flex-col justify-end items-center">
-                    <div
-                      className="w-full bg-gray-500 rounded-t transition-all"
-                      style={{ height: `${(parseFloat(avgLikelihoodB) / 5) * 100}%` }}
-                    ></div>
-                    <p className="mt-2 text-sm font-bold text-gray-800">Variant B</p>
-                    <p className="text-xs text-gray-600">{avgLikelihoodB}/5</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {comments && comments.length > 0 && (
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Comments ({comments.length})</h3>
-              <div className="space-y-3">
-                {comments.map((comment, idx) => (
-                  <div key={idx} className="border-l-4 border-orange-600 pl-4 py-2 bg-orange-50">
-                    <p className="text-gray-800">{comment.text}</p>
-                    <p className="text-xs text-gray-600 mt-1">
-                      — {comment.name} | {new Date(comment.timestamp).toLocaleString()}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="flex gap-4">
-            <button
-              onClick={onPrevious}
-              disabled={isFirst}
-              className={`px-6 py-3 rounded-lg font-bold ${
-                isFirst
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-gray-600 text-white hover:bg-gray-700'
-              }`}
-            >
-              ← Previous Test
-            </button>
-            <button
-              onClick={onNext}
-              className="flex-1 px-6 py-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700"
-            >
-              {isLast ? 'View Summary →' : 'Next Test →'}
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    function SummaryView({ votes, comments, userName, data, onReset, onViewAnalytics }) {
-      const summaryData = data.map((test, index) => {
-        const voteData = votes[index];
-        const prefA = voteData?.preference.A || 0;
-        const prefB = voteData?.preference.B || 0;
-        const total = prefA + prefB;
-        const winner = prefA > prefB ? 'A' : prefB > prefA ? 'B' : 'Tie';
-        const commentCount = comments[index]?.length || 0;
-
-        return {
-          team: test.team,
-          testType: test.testType,
-          winner,
-          totalVotes: total,
-          percentA: total > 0 ? ((prefA / total) * 100).toFixed(1) : 0,
-          percentB: total > 0 ? ((prefB / total) * 100).toFixed(1) : 0,
-          commentCount,
-        };
-      });
-
-      const handleDownloadData = () => {
-        downloadDataAsCSV(userName, votes, comments);
-      };
-
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 p-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <h1 className="text-3xl font-bold text-orange-600 mb-6">A/B Testing Summary</h1>
-
-              <div className="space-y-4">
-                {summaryData.map((item, index) => (
-                  <div key={index} className="border-b pb-4">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h3 className="font-bold text-gray-800">{item.team}</h3>
-                        <p className="text-sm text-gray-600">{item.testType} Test</p>
-                      </div>
-                      <div className="text-right">
-                        <p className={`text-2xl font-bold ${
-                          item.winner === 'A' ? 'text-orange-600' :
-                          item.winner === 'B' ? 'text-gray-700' :
-                          'text-yellow-600'
-                        }`}>
-                          {item.winner === 'Tie' ? 'Tie' : `Variant ${item.winner} Wins`}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          A: {item.percentA}% | B: {item.percentB}% | Total votes: {item.totalVotes} | Comments: {item.commentCount}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8 space-y-4">
-                <button
-                  onClick={handleDownloadData}
-                  className="w-full py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 flex items-center justify-center gap-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Download My Data (CSV)
-                </button>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <button
-                    onClick={onViewAnalytics}
-                    className="py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700"
-                  >
-                    View Analytics Dashboard
-                  </button>
-                  <button
-                    onClick={onReset}
-                    className="py-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700"
-                  >
-                    Start New Session
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    function AnalyticsView({ votes, comments, userName, data, onBack }) {
-      const totalTests = data.length;
-      const testsWithVotes = Object.keys(votes).filter(k => {
-        const v = votes[k];
-        return (v?.preference?.A || 0) + (v?.preference?.B || 0) > 0;
-      }).length;
-
-      const totalVotes = Object.values(votes).reduce((sum, v) => {
-        return sum + (v?.preference?.A || 0) + (v?.preference?.B || 0);
-      }, 0);
-
-      const totalComments = Object.values(comments).reduce((sum, c) => sum + (c?.length || 0), 0);
-
-      const testTypeStats = {};
-      data.forEach((test, idx) => {
-        if (!testTypeStats[test.testType]) {
-          testTypeStats[test.testType] = { total: 0, aWins: 0, bWins: 0, ties: 0 };
-        }
-        testTypeStats[test.testType].total++;
-
-        const voteData = votes[idx];
-        if (voteData) {
-          const prefA = voteData.preference?.A || 0;
-          const prefB = voteData.preference?.B || 0;
-          if (prefA > prefB) testTypeStats[test.testType].aWins++;
-          else if (prefB > prefA) testTypeStats[test.testType].bWins++;
-          else if (prefA === prefB && prefA > 0) testTypeStats[test.testType].ties++;
-        }
-      });
-
-      const avgEngagementA = [];
-      const avgEngagementB = [];
-      Object.values(votes).forEach(v => {
-        if (v?.likelihoodA) avgEngagementA.push(...v.likelihoodA);
-        if (v?.likelihoodB) avgEngagementB.push(...v.likelihoodB);
-      });
-
-      const overallAvgA = avgEngagementA.length > 0
-        ? (avgEngagementA.reduce((a, b) => a + b, 0) / avgEngagementA.length).toFixed(2)
-        : 0;
-      const overallAvgB = avgEngagementB.length > 0
-        ? (avgEngagementB.reduce((a, b) => a + b, 0) / avgEngagementB.length).toFixed(2)
-        : 0;
-
-      let aWins = 0, bWins = 0, ties = 0;
-      Object.values(votes).forEach(v => {
-        const prefA = v?.preference?.A || 0;
-        const prefB = v?.preference?.B || 0;
-        if (prefA > prefB) aWins++;
-        else if (prefB > prefA) bWins++;
-        else if (prefA === prefB && prefA > 0) ties++;
-      });
-
-      const testTypeChartData = Object.entries(testTypeStats).map(([type, stats]) => ({
-        testType: type,
-        'A Wins': stats.aWins,
-        'B Wins': stats.bWins,
-        'Ties': stats.ties
-      }));
-
-      const engagementDistribution = [
-        { score: '1', countA: avgEngagementA.filter(x => x === 1).length, countB: avgEngagementB.filter(x => x === 1).length },
-        { score: '2', countA: avgEngagementA.filter(x => x === 2).length, countB: avgEngagementB.filter(x => x === 2).length },
-        { score: '3', countA: avgEngagementA.filter(x => x === 3).length, countB: avgEngagementB.filter(x => x === 3).length },
-        { score: '4', countA: avgEngagementA.filter(x => x === 4).length, countB: avgEngagementB.filter(x => x === 4).length },
-        { score: '5', countA: avgEngagementA.filter(x => x === 5).length, countB: avgEngagementB.filter(x => x === 5).length }
-      ];
-
-      const handleDownloadData = () => {
-        downloadDataAsCSV(userName, votes, comments);
-      };
-
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
-              <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-blue-600">Social Media Analytics Dashboard</h1>
-                <div className="flex gap-4">
-                  <button
-                    onClick={handleDownloadData}
-                    className="px-6 py-2 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 flex items-center gap-2"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Download Data
-                  </button>
-                  <button
-                    onClick={onBack}
-                    className="px-6 py-2 bg-gray-600 text-white rounded-lg font-bold hover:bg-gray-700"
-                  >
-                    ← Back to Summary
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-4 gap-6 mb-8">
-                <div className="bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg p-6">
-                  <h3 className="text-sm font-semibold text-orange-800 mb-2">Total Votes</h3>
-                  <p className="text-4xl font-bold text-orange-900">{totalVotes}</p>
-                </div>
-                <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg p-6">
-                  <h3 className="text-sm font-semibold text-blue-800 mb-2">Total Comments</h3>
-                  <p className="text-4xl font-bold text-blue-900">{totalComments}</p>
-                </div>
-                <div className="bg-gradient-to-br from-green-100 to-green-200 rounded-lg p-6">
-                  <h3 className="text-sm font-semibold text-green-800 mb-2">Tests Completed</h3>
-                  <p className="text-4xl font-bold text-green-900">{testsWithVotes}/{totalTests}</p>
-                </div>
-                <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg p-6">
-                  <h3 className="text-sm font-semibold text-purple-800 mb-2">Avg Engagement</h3>
-                  <p className="text-4xl font-bold text-purple-900">{((parseFloat(overallAvgA) + parseFloat(overallAvgB)) / 2).toFixed(2)}/5</p>
-                </div>
-              </div>
-
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Overall Winner Distribution</h2>
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div className="bg-orange-50 border-2 border-orange-600 rounded-lg p-4 text-center">
-                    <p className="text-orange-600 font-semibold mb-2">Variant A Wins</p>
-                    <p className="text-5xl font-bold text-orange-700">{aWins}</p>
-                    <p className="text-sm text-gray-600 mt-2">{testsWithVotes > 0 ? ((aWins / testsWithVotes) * 100).toFixed(1) : 0}% of tested</p>
-                  </div>
-                  <div className="bg-gray-50 border-2 border-gray-600 rounded-lg p-4 text-center">
-                    <p className="text-gray-600 font-semibold mb-2">Variant B Wins</p>
-                    <p className="text-5xl font-bold text-gray-700">{bWins}</p>
-                    <p className="text-sm text-gray-600 mt-2">{testsWithVotes > 0 ? ((bWins / testsWithVotes) * 100).toFixed(1) : 0}% of tested</p>
-                  </div>
-                  <div className="bg-yellow-50 border-2 border-yellow-600 rounded-lg p-4 text-center">
-                    <p className="text-yellow-600 font-semibold mb-2">Ties</p>
-                    <p className="text-5xl font-bold text-yellow-700">{ties}</p>
-                    <p className="text-sm text-gray-600 mt-2">{testsWithVotes > 0 ? ((ties / testsWithVotes) * 100).toFixed(1) : 0}% of tested</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Performance by Test Type</h2>
-                <div className="space-y-4">
-                  {Object.entries(testTypeStats).map(([type, stats]) => {
-                    const total = stats.aWins + stats.bWins + stats.ties;
-                    const maxValue = Math.max(stats.aWins, stats.bWins, stats.ties, 1);
-                    return (
-                      <div key={type} className="bg-white rounded-lg p-4 border border-gray-200">
-                        <h3 className="font-bold text-gray-800 mb-3">{type}</h3>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <span className="w-20 text-sm text-gray-600">A Wins:</span>
-                            <div className="flex-1 bg-gray-100 rounded-full h-6 relative">
-                              <div
-                                className="bg-orange-600 h-6 rounded-full flex items-center justify-end pr-2"
-                                style={{ width: `${(stats.aWins / maxValue) * 100}%` }}
-                              >
-                                {stats.aWins > 0 && <span className="text-xs text-white font-bold">{stats.aWins}</span>}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="w-20 text-sm text-gray-600">B Wins:</span>
-                            <div className="flex-1 bg-gray-100 rounded-full h-6 relative">
-                              <div
-                                className="bg-gray-700 h-6 rounded-full flex items-center justify-end pr-2"
-                                style={{ width: `${(stats.bWins / maxValue) * 100}%` }}
-                              >
-                                {stats.bWins > 0 && <span className="text-xs text-white font-bold">{stats.bWins}</span>}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="w-20 text-sm text-gray-600">Ties:</span>
-                            <div className="flex-1 bg-gray-100 rounded-full h-6 relative">
-                              <div
-                                className="bg-yellow-500 h-6 rounded-full flex items-center justify-end pr-2"
-                                style={{ width: `${(stats.ties / maxValue) * 100}%` }}
-                              >
-                                {stats.ties > 0 && <span className="text-xs text-white font-bold">{stats.ties}</span>}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Click Likelihood Distribution</h2>
-                <div className="grid md:grid-cols-2 gap-6 mb-4">
-                  <div className="bg-orange-50 rounded-lg p-4">
-                    <h3 className="text-lg font-bold text-orange-600 mb-2">Variant A</h3>
-                    <p className="text-3xl font-bold text-gray-800">Avg: {overallAvgA}/5</p>
-                    <p className="text-sm text-gray-600">{avgEngagementA.length} total ratings</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-bold text-gray-700 mb-2">Variant B</h3>
-                    <p className="text-3xl font-bold text-gray-800">Avg: {overallAvgB}/5</p>
-                    <p className="text-sm text-gray-600">{avgEngagementB.length} total ratings</p>
-                  </div>
-                </div>
-                <div className="bg-white rounded-lg p-4 border border-gray-200">
-                  <div className="flex gap-4 items-end h-64">
-                    {engagementDistribution.map((item) => {
-                      const maxCount = Math.max(
-                        ...engagementDistribution.map(d => Math.max(d.countA, d.countB)),
-                        1
-                      );
-                      return (
-                        <div key={item.score} className="flex-1 flex flex-col items-center justify-end">
-                          <div className="w-full flex gap-1 items-end justify-center h-full">
-                            <div className="flex-1 flex flex-col items-center justify-end">
-                              <div
-                                className="w-full bg-orange-600 rounded-t"
-                                style={{ height: `${(item.countA / maxCount) * 100}%` }}
-                              ></div>
-                              <span className="text-xs text-gray-600 mt-1">{item.countA}</span>
-                            </div>
-                            <div className="flex-1 flex flex-col items-center justify-end">
-                              <div
-                                className="w-full bg-gray-700 rounded-t"
-                                style={{ height: `${(item.countB / maxCount) * 100}%` }}
-                              ></div>
-                              <span className="text-xs text-gray-600 mt-1">{item.countB}</span>
-                            </div>
-                          </div>
-                          <p className="text-xs font-bold text-gray-800 mt-2">Score {item.score}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="flex justify-center gap-6 mt-4 pt-4 border-t border-gray-200">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-orange-600 rounded"></div>
-                      <span className="text-sm text-gray-700">Variant A</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-gray-700 rounded"></div>
-                      <span className="text-sm text-gray-700">Variant B</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">Key Insights for Social Media Analysts</h2>
-                <div className="space-y-3">
-                  <div className="bg-white rounded-lg p-4 shadow">
-                    <h4 className="font-bold text-gray-800 mb-2">1. Variant Performance</h4>
-                    <p className="text-gray-700">
-                      {aWins > bWins
-                        ? `Variant A performed better overall, winning ${aWins} out of ${testsWithVotes} tests (${testsWithVotes > 0 ? ((aWins / testsWithVotes) * 100).toFixed(1) : 0}%).`
-                        : bWins > aWins
-                        ? `Variant B performed better overall, winning ${bWins} out of ${testsWithVotes} tests (${testsWithVotes > 0 ? ((bWins / testsWithVotes) * 100).toFixed(1) : 0}%).`
-                        : 'Variants A and B performed equally across tests.'}
-                    </p>
-                  </div>
-                  <div className="bg-white rounded-lg p-4 shadow">
-                    <h4 className="font-bold text-gray-800 mb-2">2. Engagement Quality</h4>
-                    <p className="text-gray-700">
-                      Average click likelihood scores: Variant A = {overallAvgA}/5, Variant B = {overallAvgB}/5.
-                      {parseFloat(overallAvgA) > parseFloat(overallAvgB)
-                        ? ' Variant A content shows higher engagement potential.'
-                        : parseFloat(overallAvgB) > parseFloat(overallAvgA)
-                        ? ' Variant B content shows higher engagement potential.'
-                        : ' Both variants show similar engagement potential.'}
-                    </p>
-                  </div>
-                  <div className="bg-white rounded-lg p-4 shadow">
-                    <h4 className="font-bold text-gray-800 mb-2">3. Test Type Effectiveness</h4>
-                    <p className="text-gray-700">
-                      {Object.entries(testTypeStats).map(([type, stats], idx) =>
-                        `${type} tests: ${stats.aWins + stats.bWins + stats.ties} total${idx < Object.keys(testTypeStats).length - 1 ? ', ' : '.'}`
-                      ).join('')}
-                    </p>
-                  </div>
-                  <div className="bg-white rounded-lg p-4 shadow">
-                    <h4 className="font-bold text-gray-800 mb-2">4. Community Engagement</h4>
-                    <p className="text-gray-700">
-                      {totalComments} comments received across all tests. {testsWithVotes > 0 ? `Average of ${(totalComments / testsWithVotes).toFixed(1)} comments per test with votes.` : ''}
-                      {totalComments > totalVotes / 2
-                        ? ' High comment engagement indicates strong audience interest.'
-                        : ' Consider strategies to increase comment participation.'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<ABTestingVoter />);
   </script>
 </body>
 </html>
