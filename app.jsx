@@ -222,26 +222,76 @@ const ABTestData = [
 
 export default function ABTestingVoter() {
   const [currentTest, setCurrentTest] = useState(0);
-  const [viewMode, setViewMode] = useState('voting'); // 'voting', 'results', 'summary'
-  const [votes, setVotes] = useState({});
+  const [viewMode, setViewMode] = useState('voting'); // 'voting', 'results', 'summary', 'analytics'
+  const [votes, setVotes] = useState(() => {
+    const saved = localStorage.getItem('abTestVotes');
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [comments, setComments] = useState(() => {
+    const saved = localStorage.getItem('abTestComments');
+    return saved ? JSON.parse(saved) : {};
+  });
   const [hasVoted, setHasVoted] = useState(false);
+  const [userName, setUserName] = useState(() => {
+    const saved = localStorage.getItem('abTestUserName');
+    return saved || '';
+  });
 
   const test = ABTestData[currentTest];
 
-  const handleVote = (preference, likelihoodA, likelihoodB) => {
+  // Save to localStorage whenever votes or comments change
+  React.useEffect(() => {
+    localStorage.setItem('abTestVotes', JSON.stringify(votes));
+  }, [votes]);
+
+  React.useEffect(() => {
+    localStorage.setItem('abTestComments', JSON.stringify(comments));
+  }, [comments]);
+
+  React.useEffect(() => {
+    if (userName) {
+      localStorage.setItem('abTestUserName', userName);
+    }
+  }, [userName]);
+
+  const handleVote = (preference, likelihoodA, likelihoodB, comment) => {
     const newVotes = { ...votes };
     if (!newVotes[currentTest]) {
-      newVotes[currentTest] = { preference: {}, likelihoodA: [], likelihoodB: [] };
+      newVotes[currentTest] = { preference: {}, likelihoodA: [], likelihoodB: [], voters: [] };
     }
-    
+
     // Increment preference count
     newVotes[currentTest].preference[preference] = (newVotes[currentTest].preference[preference] || 0) + 1;
-    
+
     // Add likelihood scores
     newVotes[currentTest].likelihoodA.push(likelihoodA);
     newVotes[currentTest].likelihoodB.push(likelihoodB);
-    
+
+    // Add voter info
+    newVotes[currentTest].voters.push({
+      name: userName,
+      preference,
+      likelihoodA,
+      likelihoodB,
+      timestamp: new Date().toISOString()
+    });
+
     setVotes(newVotes);
+
+    // Add comment if provided
+    if (comment && comment.trim()) {
+      const newComments = { ...comments };
+      if (!newComments[currentTest]) {
+        newComments[currentTest] = [];
+      }
+      newComments[currentTest].push({
+        name: userName,
+        text: comment,
+        timestamp: new Date().toISOString()
+      });
+      setComments(newComments);
+    }
+
     setHasVoted(true);
   };
 
@@ -270,12 +320,21 @@ export default function ABTestingVoter() {
     setViewMode('voting');
   };
 
+  // User name prompt
+  if (!userName) {
+    return <UserNamePrompt onSetName={setUserName} />;
+  }
+
   if (viewMode === 'summary') {
-    return <SummaryView votes={votes} data={ABTestData} onReset={resetAll} />;
+    return <SummaryView votes={votes} comments={comments} data={ABTestData} onReset={resetAll} onViewAnalytics={() => setViewMode('analytics')} />;
+  }
+
+  if (viewMode === 'analytics') {
+    return <AnalyticsView votes={votes} comments={comments} data={ABTestData} onBack={() => setViewMode('summary')} />;
   }
 
   const currentVoteData = votes[currentTest];
-  const totalVotes = currentVoteData ? 
+  const totalVotes = currentVoteData ?
     (currentVoteData.preference.A || 0) + (currentVoteData.preference.B || 0) : 0;
 
   return (
@@ -287,16 +346,17 @@ export default function ABTestingVoter() {
             <div>
               <h1 className="text-3xl font-bold text-orange-600">A/B Test Voting</h1>
               <p className="text-gray-600 mt-1">Test {currentTest + 1} of {ABTestData.length}</p>
+              <p className="text-sm text-gray-500 mt-1">Logged in as: <span className="font-semibold">{userName}</span></p>
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-500">{test.testType} Test</p>
               <p className="text-lg font-semibold text-gray-800">{test.team}</p>
             </div>
           </div>
-          
+
           {/* Progress Bar */}
           <div className="mt-4 bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className="bg-orange-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${((currentTest + 1) / ABTestData.length) * 100}%` }}
             />
@@ -308,9 +368,10 @@ export default function ABTestingVoter() {
         )}
 
         {hasVoted && (
-          <ResultsView 
-            test={test} 
+          <ResultsView
+            test={test}
             voteData={currentVoteData}
+            comments={comments[currentTest] || []}
             totalVotes={totalVotes}
             onNext={nextTest}
             onPrevious={previousTest}
@@ -323,14 +384,51 @@ export default function ABTestingVoter() {
   );
 }
 
+function UserNamePrompt({ onSetName }) {
+  const [name, setName] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (name.trim()) {
+      onSetName(name.trim());
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center p-6">
+      <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+        <h1 className="text-3xl font-bold text-orange-600 mb-4">Welcome to A/B Test Voting</h1>
+        <p className="text-gray-600 mb-6">Please enter your name to get started. Your responses will help analyze social media engagement patterns.</p>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter your name"
+            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-orange-600 focus:outline-none mb-4"
+            required
+          />
+          <button
+            type="submit"
+            className="w-full py-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition-all"
+          >
+            Start Voting
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function VotingView({ test, onVote }) {
   const [selectedPreference, setSelectedPreference] = useState(null);
   const [likelihoodA, setLikelihoodA] = useState(3);
   const [likelihoodB, setLikelihoodB] = useState(3);
+  const [comment, setComment] = useState('');
 
   const handleSubmit = () => {
     if (selectedPreference) {
-      onVote(selectedPreference, likelihoodA, likelihoodB);
+      onVote(selectedPreference, likelihoodA, likelihoodB, comment);
     }
   };
 
@@ -436,19 +534,33 @@ function VotingView({ test, onVote }) {
         </div>
         
         {selectedPreference && (
-          <button
-            onClick={handleSubmit}
-            className="w-full mt-4 py-3 bg-green-600 text-white rounded-lg font-bold text-lg hover:bg-green-700 transition-all"
-          >
-            Submit Vote
-          </button>
+          <>
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Add a comment (optional)
+              </label>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Share your thoughts on this A/B test..."
+                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-orange-600 focus:outline-none resize-none"
+                rows="3"
+              />
+            </div>
+            <button
+              onClick={handleSubmit}
+              className="w-full mt-4 py-3 bg-green-600 text-white rounded-lg font-bold text-lg hover:bg-green-700 transition-all"
+            >
+              Submit Vote
+            </button>
+          </>
         )}
       </div>
     </div>
   );
 }
 
-function ResultsView({ test, voteData, totalVotes, onNext, onPrevious, isFirst, isLast }) {
+function ResultsView({ test, voteData, comments, totalVotes, onNext, onPrevious, isFirst, isLast }) {
   const preferenceA = voteData?.preference.A || 0;
   const preferenceB = voteData?.preference.B || 0;
   const percentA = totalVotes > 0 ? ((preferenceA / totalVotes) * 100).toFixed(1) : 0;
@@ -516,14 +628,31 @@ function ResultsView({ test, voteData, totalVotes, onNext, onPrevious, isFirst, 
         </ResponsiveContainer>
       </div>
 
+      {/* Comments Section */}
+      {comments && comments.length > 0 && (
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Comments ({comments.length})</h3>
+          <div className="space-y-3">
+            {comments.map((comment, idx) => (
+              <div key={idx} className="border-l-4 border-orange-600 pl-4 py-2 bg-orange-50">
+                <p className="text-gray-800">{comment.text}</p>
+                <p className="text-xs text-gray-600 mt-1">
+                  — {comment.name} | {new Date(comment.timestamp).toLocaleString()}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Navigation */}
       <div className="flex gap-4">
         <button
           onClick={onPrevious}
           disabled={isFirst}
           className={`px-6 py-3 rounded-lg font-bold ${
-            isFirst 
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+            isFirst
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
               : 'bg-gray-600 text-white hover:bg-gray-700'
           }`}
         >
@@ -540,14 +669,15 @@ function ResultsView({ test, voteData, totalVotes, onNext, onPrevious, isFirst, 
   );
 }
 
-function SummaryView({ votes, data, onReset }) {
+function SummaryView({ votes, comments, data, onReset, onViewAnalytics }) {
   const summaryData = data.map((test, index) => {
     const voteData = votes[index];
     const prefA = voteData?.preference.A || 0;
     const prefB = voteData?.preference.B || 0;
     const total = prefA + prefB;
     const winner = prefA > prefB ? 'A' : prefB > prefA ? 'B' : 'Tie';
-    
+    const commentCount = comments[index]?.length || 0;
+
     return {
       team: test.team,
       testType: test.testType,
@@ -555,6 +685,7 @@ function SummaryView({ votes, data, onReset }) {
       totalVotes: total,
       percentA: total > 0 ? ((prefA / total) * 100).toFixed(1) : 0,
       percentB: total > 0 ? ((prefB / total) * 100).toFixed(1) : 0,
+      commentCount,
     };
   });
 
@@ -581,7 +712,7 @@ function SummaryView({ votes, data, onReset }) {
                       {item.winner === 'Tie' ? 'Tie' : `Variant ${item.winner} Wins`}
                     </p>
                     <p className="text-sm text-gray-600">
-                      A: {item.percentA}% | B: {item.percentB}% | Total votes: {item.totalVotes}
+                      A: {item.percentA}% | B: {item.percentB}% | Total votes: {item.totalVotes} | Comments: {item.commentCount}
                     </p>
                   </div>
                 </div>
@@ -589,12 +720,252 @@ function SummaryView({ votes, data, onReset }) {
             ))}
           </div>
 
-          <button
-            onClick={onReset}
-            className="mt-8 w-full py-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700"
-          >
-            Start New Session
-          </button>
+          <div className="mt-8 flex gap-4">
+            <button
+              onClick={onViewAnalytics}
+              className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700"
+            >
+              View Analytics Dashboard
+            </button>
+            <button
+              onClick={onReset}
+              className="flex-1 py-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700"
+            >
+              Start New Session
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AnalyticsView({ votes, comments, data, onBack }) {
+  // Calculate comprehensive analytics
+  const totalTests = data.length;
+  const testsWithVotes = Object.keys(votes).filter(k => {
+    const v = votes[k];
+    return (v?.preference?.A || 0) + (v?.preference?.B || 0) > 0;
+  }).length;
+
+  const totalVotes = Object.values(votes).reduce((sum, v) => {
+    return sum + (v?.preference?.A || 0) + (v?.preference?.B || 0);
+  }, 0);
+
+  const totalComments = Object.values(comments).reduce((sum, c) => sum + (c?.length || 0), 0);
+
+  // Test type breakdown
+  const testTypeStats = {};
+  data.forEach((test, idx) => {
+    if (!testTypeStats[test.testType]) {
+      testTypeStats[test.testType] = { total: 0, aWins: 0, bWins: 0, ties: 0 };
+    }
+    testTypeStats[test.testType].total++;
+
+    const voteData = votes[idx];
+    if (voteData) {
+      const prefA = voteData.preference?.A || 0;
+      const prefB = voteData.preference?.B || 0;
+      if (prefA > prefB) testTypeStats[test.testType].aWins++;
+      else if (prefB > prefA) testTypeStats[test.testType].bWins++;
+      else if (prefA === prefB && prefA > 0) testTypeStats[test.testType].ties++;
+    }
+  });
+
+  // Calculate average engagement scores
+  const avgEngagementA = [];
+  const avgEngagementB = [];
+  Object.values(votes).forEach(v => {
+    if (v?.likelihoodA) avgEngagementA.push(...v.likelihoodA);
+    if (v?.likelihoodB) avgEngagementB.push(...v.likelihoodB);
+  });
+
+  const overallAvgA = avgEngagementA.length > 0
+    ? (avgEngagementA.reduce((a, b) => a + b, 0) / avgEngagementA.length).toFixed(2)
+    : 0;
+  const overallAvgB = avgEngagementB.length > 0
+    ? (avgEngagementB.reduce((a, b) => a + b, 0) / avgEngagementB.length).toFixed(2)
+    : 0;
+
+  // Winner distribution
+  let aWins = 0, bWins = 0, ties = 0;
+  Object.values(votes).forEach(v => {
+    const prefA = v?.preference?.A || 0;
+    const prefB = v?.preference?.B || 0;
+    if (prefA > prefB) aWins++;
+    else if (prefB > prefA) bWins++;
+    else if (prefA === prefB && prefA > 0) ties++;
+  });
+
+  // Chart data for test type performance
+  const testTypeChartData = Object.entries(testTypeStats).map(([type, stats]) => ({
+    testType: type,
+    'A Wins': stats.aWins,
+    'B Wins': stats.bWins,
+    'Ties': stats.ties
+  }));
+
+  // Overall performance chart
+  const performanceData = [
+    { metric: 'Total Votes', value: totalVotes },
+    { metric: 'Total Comments', value: totalComments },
+    { metric: 'Tests Completed', value: testsWithVotes }
+  ];
+
+  // Engagement distribution
+  const engagementDistribution = [
+    { score: '1', countA: avgEngagementA.filter(x => x === 1).length, countB: avgEngagementB.filter(x => x === 1).length },
+    { score: '2', countA: avgEngagementA.filter(x => x === 2).length, countB: avgEngagementB.filter(x => x === 2).length },
+    { score: '3', countA: avgEngagementA.filter(x => x === 3).length, countB: avgEngagementB.filter(x => x === 3).length },
+    { score: '4', countA: avgEngagementA.filter(x => x === 4).length, countB: avgEngagementB.filter(x => x === 4).length },
+    { score: '5', countA: avgEngagementA.filter(x => x === 5).length, countB: avgEngagementB.filter(x => x === 5).length }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold text-blue-600">Social Media Analytics Dashboard</h1>
+            <button
+              onClick={onBack}
+              className="px-6 py-2 bg-gray-600 text-white rounded-lg font-bold hover:bg-gray-700"
+            >
+              ← Back to Summary
+            </button>
+          </div>
+
+          {/* Key Metrics */}
+          <div className="grid md:grid-cols-4 gap-6 mb-8">
+            <div className="bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg p-6">
+              <h3 className="text-sm font-semibold text-orange-800 mb-2">Total Votes</h3>
+              <p className="text-4xl font-bold text-orange-900">{totalVotes}</p>
+            </div>
+            <div className="bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg p-6">
+              <h3 className="text-sm font-semibold text-blue-800 mb-2">Total Comments</h3>
+              <p className="text-4xl font-bold text-blue-900">{totalComments}</p>
+            </div>
+            <div className="bg-gradient-to-br from-green-100 to-green-200 rounded-lg p-6">
+              <h3 className="text-sm font-semibold text-green-800 mb-2">Tests Completed</h3>
+              <p className="text-4xl font-bold text-green-900">{testsWithVotes}/{totalTests}</p>
+            </div>
+            <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg p-6">
+              <h3 className="text-sm font-semibold text-purple-800 mb-2">Avg Engagement</h3>
+              <p className="text-4xl font-bold text-purple-900">{((parseFloat(overallAvgA) + parseFloat(overallAvgB)) / 2).toFixed(2)}/5</p>
+            </div>
+          </div>
+
+          {/* Winner Distribution */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Overall Winner Distribution</h2>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="bg-orange-50 border-2 border-orange-600 rounded-lg p-4 text-center">
+                <p className="text-orange-600 font-semibold mb-2">Variant A Wins</p>
+                <p className="text-5xl font-bold text-orange-700">{aWins}</p>
+                <p className="text-sm text-gray-600 mt-2">{totalTests > 0 ? ((aWins / testsWithVotes) * 100).toFixed(1) : 0}% of tested</p>
+              </div>
+              <div className="bg-gray-50 border-2 border-gray-600 rounded-lg p-4 text-center">
+                <p className="text-gray-600 font-semibold mb-2">Variant B Wins</p>
+                <p className="text-5xl font-bold text-gray-700">{bWins}</p>
+                <p className="text-sm text-gray-600 mt-2">{totalTests > 0 ? ((bWins / testsWithVotes) * 100).toFixed(1) : 0}% of tested</p>
+              </div>
+              <div className="bg-yellow-50 border-2 border-yellow-600 rounded-lg p-4 text-center">
+                <p className="text-yellow-600 font-semibold mb-2">Ties</p>
+                <p className="text-5xl font-bold text-yellow-700">{ties}</p>
+                <p className="text-sm text-gray-600 mt-2">{totalTests > 0 ? ((ties / testsWithVotes) * 100).toFixed(1) : 0}% of tested</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Test Type Performance */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Performance by Test Type</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={testTypeChartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="testType" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="A Wins" fill="#f76902" />
+                <Bar dataKey="B Wins" fill="#4b5563" />
+                <Bar dataKey="Ties" fill="#eab308" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Engagement Score Distribution */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Click Likelihood Distribution</h2>
+            <div className="grid md:grid-cols-2 gap-6 mb-4">
+              <div className="bg-orange-50 rounded-lg p-4">
+                <h3 className="text-lg font-bold text-orange-600 mb-2">Variant A</h3>
+                <p className="text-3xl font-bold text-gray-800">Avg: {overallAvgA}/5</p>
+                <p className="text-sm text-gray-600">{avgEngagementA.length} total ratings</p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-lg font-bold text-gray-700 mb-2">Variant B</h3>
+                <p className="text-3xl font-bold text-gray-800">Avg: {overallAvgB}/5</p>
+                <p className="text-sm text-gray-600">{avgEngagementB.length} total ratings</p>
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={engagementDistribution}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="score" label={{ value: 'Likelihood Score', position: 'insideBottom', offset: -5 }} />
+                <YAxis label={{ value: 'Count', angle: -90, position: 'insideLeft' }} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="countA" name="Variant A" fill="#f76902" />
+                <Bar dataKey="countB" name="Variant B" fill="#4b5563" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Key Insights for Social Media Analysts */}
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Key Insights for Social Media Analysts</h2>
+            <div className="space-y-3">
+              <div className="bg-white rounded-lg p-4 shadow">
+                <h4 className="font-bold text-gray-800 mb-2">1. Variant Performance</h4>
+                <p className="text-gray-700">
+                  {aWins > bWins
+                    ? `Variant A performed better overall, winning ${aWins} out of ${testsWithVotes} tests (${((aWins / testsWithVotes) * 100).toFixed(1)}%).`
+                    : bWins > aWins
+                    ? `Variant B performed better overall, winning ${bWins} out of ${testsWithVotes} tests (${((bWins / testsWithVotes) * 100).toFixed(1)}%).`
+                    : 'Variants A and B performed equally across tests.'}
+                </p>
+              </div>
+              <div className="bg-white rounded-lg p-4 shadow">
+                <h4 className="font-bold text-gray-800 mb-2">2. Engagement Quality</h4>
+                <p className="text-gray-700">
+                  Average click likelihood scores: Variant A = {overallAvgA}/5, Variant B = {overallAvgB}/5.
+                  {parseFloat(overallAvgA) > parseFloat(overallAvgB)
+                    ? ' Variant A content shows higher engagement potential.'
+                    : parseFloat(overallAvgB) > parseFloat(overallAvgA)
+                    ? ' Variant B content shows higher engagement potential.'
+                    : ' Both variants show similar engagement potential.'}
+                </p>
+              </div>
+              <div className="bg-white rounded-lg p-4 shadow">
+                <h4 className="font-bold text-gray-800 mb-2">3. Test Type Effectiveness</h4>
+                <p className="text-gray-700">
+                  {Object.entries(testTypeStats).map(([type, stats], idx) =>
+                    `${type} tests: ${stats.aWins + stats.bWins + stats.ties} total${idx < Object.keys(testTypeStats).length - 1 ? ', ' : '.'}`
+                  ).join('')}
+                </p>
+              </div>
+              <div className="bg-white rounded-lg p-4 shadow">
+                <h4 className="font-bold text-gray-800 mb-2">4. Community Engagement</h4>
+                <p className="text-gray-700">
+                  {totalComments} comments received across all tests. Average of {(totalComments / testsWithVotes).toFixed(1)} comments per test with votes.
+                  {totalComments > totalVotes / 2
+                    ? ' High comment engagement indicates strong audience interest.'
+                    : ' Consider strategies to increase comment participation.'}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
