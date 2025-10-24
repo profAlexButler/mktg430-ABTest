@@ -100,21 +100,33 @@ The analytics dashboard provides insights that social media analysts typically l
 - **Data Storage**: Browser localStorage
 - **Dependencies**: Loaded via CDN (no installation required)
 
-## For Instructors
+## Data Collection Options
 
-### Exporting Data
+### Option 1: Student CSV Download (Recommended for Non-Technical Classes)
 
-To collect student data for analysis:
-1. Have students open browser console (F12)
+The easiest method for collecting student data:
+
+1. **Students complete the voting**: Have students go through all 18 A/B tests
+2. **Click "Download My Data (CSV)"**: After completing tests, students click the green download button on the Summary page or Analytics Dashboard
+3. **Email you the file**: Students email you the automatically generated CSV file (named like `ABTest_JohnDoe_2025-10-24.csv`)
+4. **Combine the data**: You can merge all CSV files in Excel or Google Sheets for class-wide analysis
+
+The CSV includes:
+- Student name
+- Test name and type
+- Variant selected (A or B)
+- Click likelihood ratings for both variants
+- Comments (if provided)
+- Timestamps
+
+### Option 2: Browser Console Export (For Advanced Users)
+
+If needed, students can also export raw data:
+1. Open browser console (F12)
 2. Run: `console.log(JSON.stringify(localStorage))`
 3. Copy the output and save to a file
 
-### Analyzing Data
-
-The localStorage contains:
-- `abTestVotes`: All voting data with timestamps and user names
-- `abTestComments`: All comments with timestamps and user names
-- This data can be imported into Excel, Google Sheets, or statistical software for further analysis
+This provides all voting and comment data in JSON format.
 
 ## Browser Compatibility
 
